@@ -17,6 +17,6 @@ build {
   }
 
   post-processor "manifestory-post-processor" {
-    mock = "post-processor mock-config"
+    s3_path = "s3://hudson-integration-test/artifact/"
   }
 }
