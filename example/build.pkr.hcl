@@ -16,7 +16,5 @@ build {
     mock = "foo: ${local.foo}"
   }
 
-  post-processor "manifestory-post-processor" {
-    mock = "post-processor mock-config"
-  }
+  post-processor "manifestory-post-processor" {}
 }

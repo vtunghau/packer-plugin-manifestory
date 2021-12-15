@@ -18,8 +18,10 @@ type FlatConfig struct {
 	PackerOnError       *string           `mapstructure:"packer_on_error" cty:"packer_on_error" hcl:"packer_on_error"`
 	PackerUserVars      map[string]string `mapstructure:"packer_user_variables" cty:"packer_user_variables" hcl:"packer_user_variables"`
 	PackerSensitiveVars []string          `mapstructure:"packer_sensitive_variables" cty:"packer_sensitive_variables" hcl:"packer_sensitive_variables"`
-	MockOption          *string           `mapstructure:"mock" cty:"mock" hcl:"mock"`
-	S3Bucket             *string          `mapstructure:"s3_bucket_name" cty:"s3_bucket_name" hcl:"s3_bucket_name"`
+	OutputPath          *string           `mapstructure:"output" cty:"output" hcl:"output"`
+	StripPath           *bool             `mapstructure:"strip_path" cty:"strip_path" hcl:"strip_path"`
+	StripTime           *bool             `mapstructure:"strip_time" cty:"strip_time" hcl:"strip_time"`
+	CustomData          map[string]string `mapstructure:"custom_data" cty:"custom_data" hcl:"custom_data"`
 }
 
 // FlatMapstructure returns a new FlatConfig.
@@ -42,8 +44,10 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"packer_on_error":            &hcldec.AttrSpec{Name: "packer_on_error", Type: cty.String, Required: false},
 		"packer_user_variables":      &hcldec.AttrSpec{Name: "packer_user_variables", Type: cty.Map(cty.String), Required: false},
 		"packer_sensitive_variables": &hcldec.AttrSpec{Name: "packer_sensitive_variables", Type: cty.List(cty.String), Required: false},
-		"mock":                       &hcldec.AttrSpec{Name: "mock", Type: cty.String, Required: false},
-		"s3_bucket_name":             &hcldec.AttrSpec{Name: "s3_bucket_name", Type: cty.String, Required: false},
+		"output":                     &hcldec.AttrSpec{Name: "output", Type: cty.String, Required: false},
+		"strip_path":                 &hcldec.AttrSpec{Name: "strip_path", Type: cty.Bool, Required: false},
+		"strip_time":                 &hcldec.AttrSpec{Name: "strip_time", Type: cty.Bool, Required: false},
+		"custom_data":                &hcldec.AttrSpec{Name: "custom_data", Type: cty.Map(cty.String), Required: false},
 	}
 	return s
 }
