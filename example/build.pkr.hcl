@@ -16,5 +16,7 @@ build {
     mock = "foo: ${local.foo}"
   }
 
-  post-processor "manifestory-post-processor" {}
+  post-processor "manifestory-post-processor" {
+    s3_path = "s3://hudson-integration-test/artifact/"
+  }
 }

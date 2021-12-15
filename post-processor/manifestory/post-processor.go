@@ -11,10 +11,12 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"bytes"
+	"strings"
 
-	// "github.com/aws/aws-sdk-go/aws"
-	// "github.com/aws/aws-sdk-go/service/s3"
-	// awscommon "github.com/hashicorp/packer-plugin-amazon/builder/common"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	awscommon "github.com/hashicorp/packer-plugin-amazon/builder/common"
 	"github.com/hashicorp/hcl/v2/hcldec"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
 	"github.com/hashicorp/packer-plugin-sdk/common"
@@ -24,6 +26,7 @@ import (
 
 type Config struct {
 	common.PackerConfig `mapstructure:",squash"`
+	awscommon.AccessConfig `mapstructure:",squash"`
 
 	// The manifest will be written to this file. This defaults to
 	// `packer-manifest.json`.
@@ -36,6 +39,8 @@ type Config struct {
 	// Arbitrary data to add to the manifest. This is a [template
 	// engine](https://packer.io/docs/templates/legacy_json_templates/engine.html). Therefore, you
 	// may use user variables and template functions in this field.
+	S3Path  			string `mapstructure:"s3_path"`
+	ArtifactoryPath  	string `mapstructure:"artifactory_path"`
 	CustomData map[string]string `mapstructure:"custom_data"`
 	ctx        interpolate.Context
 }
@@ -175,6 +180,40 @@ func (p *PostProcessor) PostProcess(ctx context.Context, ui packersdk.Ui, source
 
 	// The manifest should never delete the artifacts it is set to record, so it
 	// forcibly sets "keep" to true.
+	
+	session, err := p.config.Session()
+	if err != nil {
+		return nil, false, false, err
+	}
+
+	// Write JSON to s3 if s3_path exist
+	if p.config.S3Path != "" {
+		s3_path 	:= strings.Replace(p.config.S3Path, "s3://", "", 1)
+		s3_bucket 	:= strings.SplitN(s3_path, "/", 2)[0]
+		s3_key 		:= strings.SplitN(s3_path, "/", 2)[1]
+		if strings.HasSuffix(s3_key, "/"){
+			s3_key = strings.Join([]string{s3_key, "packer-manifest.json"}, "")
+		}
+		ui.Say(fmt.Sprintf("post-processor s3://%s/%s", s3_bucket, s3_key))
+		
+		if out, err := json.MarshalIndent(*artifact, "", "  "); err == nil {
+			reader := bytes.NewReader(out)
+			updata := &s3manager.UploadInput{
+				Body:   reader,
+				Bucket: aws.String(s3_bucket),
+				Key:    aws.String(s3_key),
+			}
+		
+			// Copy the image file into the S3 bucket specified
+			uploader := s3manager.NewUploader(session)
+			if _, err = uploader.Upload(updata); err != nil {
+				return nil, false, false, fmt.Errorf("Failed to upload %s: %s", source, err)
+			}
+		} else {
+			return source, true, true, fmt.Errorf("Unable to marshal JSON %s", err)
+		}
+	}
+
 	return source, true, true, nil
 }
 

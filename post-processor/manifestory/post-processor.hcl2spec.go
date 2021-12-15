@@ -22,6 +22,9 @@ type FlatConfig struct {
 	StripPath           *bool             `mapstructure:"strip_path" cty:"strip_path" hcl:"strip_path"`
 	StripTime           *bool             `mapstructure:"strip_time" cty:"strip_time" hcl:"strip_time"`
 	CustomData          map[string]string `mapstructure:"custom_data" cty:"custom_data" hcl:"custom_data"`
+	S3Path              *string           `mapstructure:"s3_path" cty:"s3_path" hcl:"s3_path"`
+	ArtifactoryPath     *string           `mapstructure:"artifactory_path" cty:"artifactory_path" hcl:"artifactory_path"`
+
 }
 
 // FlatMapstructure returns a new FlatConfig.
@@ -48,6 +51,8 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"strip_path":                 &hcldec.AttrSpec{Name: "strip_path", Type: cty.Bool, Required: false},
 		"strip_time":                 &hcldec.AttrSpec{Name: "strip_time", Type: cty.Bool, Required: false},
 		"custom_data":                &hcldec.AttrSpec{Name: "custom_data", Type: cty.Map(cty.String), Required: false},
+		"s3_path":                    &hcldec.AttrSpec{Name: "s3_path", Type: cty.String, Required: false},
+		"artifactory_path":           &hcldec.AttrSpec{Name: "artifactory_path", Type: cty.String, Required: false},
 	}
 	return s
 }
